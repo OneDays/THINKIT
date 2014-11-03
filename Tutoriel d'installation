@@ -1,0 +1,272 @@
+ETAPE 1 (Préparation de votre serveur pour accueilir votre nouveau CMS):
+
+a) Mettre à jour sa distribution Linux:
+
+apt-get upgrade --> vous aurez surement un message indiquant que votre distribution est à jour! Elle est à jour certes,
+tout dépend de vos dépôts(!!) 
+
+Taper sur Google et recherchez les dépôts principaux pour votre distribution (ex: https://wiki.debian.org/fr/SourcesList)
+google search: dépôt debian main
+
+b) Mettre à jour votre liste de paquets:
+
+apt-get update une fois votre "Distribution Upgradée" 
+
+ETAPE 2 (Préparation et installation du nécessaire pour Gazelle (lib && apps))
+(en général, la plus part d'entre vous tournez sous l'utilisateur "Root", donc pas besoin à chaque fois de taper: "sudo")
+
+*** il est fortement recommandé de créer un "Nouvel utilisateur au lieu d'utiliser le ROOT !!" 
+
+sudo apt-get install mysql-server mysql-client libmysql++-dev libmysqld-dev \
+libpng-dev libmcrypt-dev libxml2-dev memcached sphinxsearch binutils libev-dev git nginx \
+php5-fpm php-soap php-pear php5-memcache php5-curl php5-mysql php5-mcrypt php5-gd postfix
+
+*** Nous conseillons l'utilisation de PostFix au lieu de Sendmail 
+(Sendmail est relativement difficile à configurer pour, par exemple, gérer les "HEADERS" lors de l'envoi d'un mail.) 
+PostFix est quand à lui relativement simple à prendre en main.
+
+[NOTES]::Lors de la compilation d'Ocelot, certains d'entres vous rencontrerons probablement une ou plusieurs erreurs liées
+à certaines "Libraires Manquantes" sur votre serveur dédié, il faudra chercher cette erreur et "Coller son code" 
+au travers de Google afin d'obtenir de l'aide !
+
+Nous allons renseigner ici quelques unes de ces "Erreur" lors de votre future "Compilation de Ocelot": 
+
+ERR 1: Didn't find mysqlclient library in '/usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu//lib64 /usr/lib/x86_64-linux-gnu//lib /usr/lib/x86_64-linux-gnu//lib64/mysql /usr/lib/x86_64-linux-gnu//lib/mysql'
+
+Cela vient probablement du fait qu'il manque la Lib: libev4 + libev-dev! Ajoutez ce paquet en tapant:
+apt-get install libev4 libev-dev -y
+
+
+
+Packages for Ocelot
+
+Install packages
+
+sudo apt-get install make g++ libbz2-dev libtcmalloc-minimal4
+
+Create link for TCMalloc library file
+
+sudo ln -s /usr/lib/libtcmalloc_minimal.so.4 /usr/lib/libtcmalloc.so
+
+Note: Read more about TCMalloc here: http://goog-perftools.sourceforge.net/doc/tcmalloc.html
+
+Install Boost libraries:
+
+Note: Grab latest version from http://sourceforge.net/projects/boost/files/boost/
+
+tar -zxf boost_VERSION.tar.gz
+cd boost_VERSION
+
+./bootstrap.sh --prefix=/usr/local
+./b2 stage toolset=gcc cxxflags=-std=gnu++11 threading=multi link=shared
+sudo ./b2 install toolset=gcc cxxflags=-std=gnu++11 threading=multi link=shared
+
+Configure
+Configure Nginx
+
+sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
+sudo nano /etc/nginx/sites-available/default
+
+Copy and paste the following. edit HOST_NAME:
+
+server {
+        root /var/www;
+        index index.php;
+
+        server_name HOST_NAME;
+
+        location / {
+                try_files $uri $uri/ /index.php;
+        }
+
+        location ~ \.php$ {
+                fastcgi_split_path_info ^(.+\.php)(/.+)$;
+                fastcgi_pass unix:/var/run/php5-fpm.sock;
+                fastcgi_index index.php;
+                include fastcgi_params;
+        }
+}
+
+Press Ctrl+X and select Yes.
+
+Restart Nginx:
+
+sudo service nginx restart
+
+Configure Gazelle
+
+Get Gazelle:
+
+git clone https://github.com/WhatCD/Gazelle.git
+sudo mkdir /var/www
+sudo cp -r Gazelle/* /var/www
+
+Import starter database
+
+mysql -u root -p < /var/www/gazelle.sql
+
+Note: This will ask for the password entered earlier when the MySQL package was installed.
+
+Edit site configuration file
+
+sudo cp /var/www/classes/config.template /var/www/classes/config.php
+sudo nano /var/www/classes/config.php
+
+Note: Fill in everything minus IRC otherwise browsers will show a blank white page error.
+
+Change site details and ports and fill in the encryption keys. (Named constant 'ENCKEY' must be 32 characters long.)
+Configure Sphinx
+
+sudo cp /var/www/sphinx.conf /etc/sphinxsearch/
+sudo nano /etc/sphinxsearch/sphinx.conf
+sudo mkdir /var/lib/sphinx
+sudo mkdir /var/log/searchd
+sudo indexer -c /etc/sphinxsearch/sphinx.conf --all
+
+Note: Make sure you update the MySQL details in sphinx.conf
+Configure Ocelot
+
+Get Ocelot
+
+wget https://what.cd/ocelot-0.8.tar.gz --no-check-certificate
+tar -zxf ocelot-0.8.tar.gz
+cd ocelot-0.8
+
+cp config.cpp.template config.cpp
+nano config.cpp
+
+Note: Edit MySQL details accordingly in config.cpp and change the port to 2710 if that is what was set in config.php (default).
+
+Configure, Compile, Install
+
+./configure --with-mysql-lib=/usr/lib/x86_64-linux-gnu/ --with-ev-lib=/usr/lib/x86_64-linux-gnu/
+make
+sudo make install
+
+Create cron job for Gazelle jobs
+
+mkdir ~/logs
+sudo crontab -e
+
+Copy and paste the following:
+
+0,15,30,45 * * * * php /var/www/schedule.php SCHEDULE_KEY >> /home/USER/logs/schedule.log
+10,25,40,55 * * * * php /var/www/peerupdate.php SCHEDULE_KEY >> /home/USER/logs/peerupdate.log
+
+* * * * * indexer -c /etc/sphinxsearch/sphinx.conf --rotate delta requests_delta
+
+5 0,12 * * * indexer -c /etc/sphinxsearch/sphinx.conf --rotate --all
+
+Note: Make sure you change KEY to the schedule key you used in config.php.
+Starting Gazelle processes at startup
+
+Memcached
+
+sudo mv /etc/memcached.conf /etc/memcached.conf.bak
+sudo nano /etc/memcached.conf
+
+Copy and paste the following:
+
+# Run memcached as a daemon. This command is implied, and is not needed for the
+# daemon to run.
+-d
+
+# Log memcached's output to /var/log/memcached
+logfile /var/log/memcached.log
+
+# Start with a cap of 512 megs of memory.
+# Note that the daemon will grow to this size, 
+# but does not start out holding this much memory
+-m 512
+
+# Unix socket path to listen on (disables network support).
+-s /var/run/memcached.sock
+
+# Permissions (in octal format) for Unix socket created with -s option.
+-a 0777
+
+# Run the daemon as root.
+-u root
+
+# Disable the use of CAS (and reduce the per-item size by 8 bytes).
+-C
+
+Press Ctrl+X and select Yes.
+
+Restart memcached:
+
+sudo service memcached restart
+
+Sphinx
+
+sudo nano /etc/init.d/searchd
+
+Copy and paste the following:
+
+#!/bin/bash
+
+case "${1:-''}" in
+  'start')
+        /usr/bin/searchd
+        ;;
+  'stop')
+        /usr/bin/searchd --stop
+        ;;
+  'restart')
+        /usr/bin/searchd --stop && /usr/bin/searchd
+        ;;
+  *)
+        echo "Usage: $SELF start|stop|restart"
+        exit 1
+        ;;
+esac
+
+Press Ctrl+X and select Yes.
+
+Set correct permissions for script:
+
+sudo chmod +x /etc/init.d/searchd
+
+Set searchd service to be started on boot:
+
+sudo update-rc.d searchd defaults
+
+Start searchd:
+
+sudo service searchd start
+
+Ocelot
+
+To start Ocelot, open a screen by typing screen, and then start Ocelot by typing LD_LIBRARY_PATH=/usr/local/lib ocelot.
+
+To leave the screen, press Ctrl+A+D.
+
+To re-enter the screen, type screen -r.
+PHP Settings
+
+Enable short open tags
+
+sudo nano /etc/php5/fpm/php.ini
+
+Under 'Language Options'
+
+short_open_tag = On
+
+Press Ctrl+X and select Yes.
+
+sudo nano /etc/php5/cli/php.ini
+
+Under 'Language Options'
+
+short_open_tag = On
+
+Press Ctrl+X and select Yes.
+
+Enable mcrypt extension
+
+sudo ln -s /etc/php5/mods-available/mcrypt.ini /etc/php5/fpm/conf.d/20-mcrypt.ini
+sudo ln -s /etc/php5/mods-available/mcrypt.ini /etc/php5/cli/conf.d/20-mcrypt.ini
+
+Restart php-fpm:
+
+sudo service php5-fpm restart
