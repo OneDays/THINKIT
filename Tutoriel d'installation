@@ -82,7 +82,11 @@ sudo nano /etc/nginx/sites-available/default
 Copiez et coller cette configuration + Editez le HOST_NAME(remplacez par votre "Nom de Domaine" ou "Votre IP, celle du serveur"):
 
 server {
-        root /var/www;  # si vous souhaitez un autre dossier genre /var/www/thinkit, c'est pareil, il vous faut simplement créer le dossier "thinkit" (mkdir thinkit ou tracker ou cms ou autre)
+        root /var/www;  
+        # si vous souhaitez un autre dossier par ex /var/www/cms, c'est pareil, 
+        # il vous faut simplement créer le dossier "cms" (mkdir cms ou tracker ou autre)
+        # un "dièze en début de lign pour commenter la ligne
+        # commentaire :)
         index index.php;
 
         server_name HOST_NAME;
@@ -109,27 +113,35 @@ sudo service nginx restart
 ETAPE 5 (Récupération et Configuration de Gazelle):
 Configure Gazelle
 
-Get Gazelle:
+On récupère Gazelle sur Git:
 
-git clone https://github.com/WhatCD/Gazelle.git
-sudo mkdir /var/www
+- apt-get install git (si besoin)
+- git clone https://github.com/WhatCD/Gazelle.git
+
+sudo mkdir /var/www 
+et si besoin: sudo mkdir /var/www/cms (installation dans un sous-répertoire)
 sudo cp -r Gazelle/* /var/www
 
-Import starter database
+*** ETAPE SQL (Création de la DB + Tables pour accueillir Gazelle)
 
 mysql -u root -p < /var/www/gazelle.sql
 
-Note: This will ask for the password entered earlier when the MySQL package was installed.
+[Note]:: Nous conseilleons de ne pas travailler en "ROOT" ! 
+Il est préférable de créer un "Utilisateur" pour "Accéder aux données de vos Tables !!"
 
-Edit site configuration file
+b) Edition du ficher de configuration dans /var/www/classes/config.php
 
 sudo cp /var/www/classes/config.template /var/www/classes/config.php
 sudo nano /var/www/classes/config.php
 
-Note: Fill in everything minus IRC otherwise browsers will show a blank white page error.
+Configurer en fonction du serveur et de son IP et ou Nom de Domaine
 
-Change site details and ports and fill in the encryption keys. (Named constant 'ENCKEY' must be 32 characters long.)
-Configure Sphinx
+<<Change site details and ports and fill in the encryption keys. (Named constant 'ENCKEY' must be 32 characters long.)>>
+
+
+ETAPE 6:
+
+a) Configuration de Sphinx (recherche de torrent..)
 
 sudo cp /var/www/sphinx.conf /etc/sphinxsearch/
 sudo nano /etc/sphinxsearch/sphinx.conf
@@ -137,32 +149,41 @@ sudo mkdir /var/lib/sphinx
 sudo mkdir /var/log/searchd
 sudo indexer -c /etc/sphinxsearch/sphinx.conf --all
 
-Note: Make sure you update the MySQL details in sphinx.conf
-Configure Ocelot
+Note: renseignez dans le fichier "sphinx.conf" le nom de la DB + les IDs de connexion à la DB !!
 
-Get Ocelot
+ETAPE 7 (Ocelot:: Cinfiguration et Compilation)
 
-wget https://what.cd/ocelot-0.8.tar.gz --no-check-certificate
-tar -zxf ocelot-0.8.tar.gz
-cd ocelot-0.8
+a) Configurer Ocelot
+
+[Ocelot se trouve dans les sources de Gazelle !!]
+Alternative::   wget https://what.cd/ocelot-0.8.tar.gz --no-check-certificate
+                tar -zxf ocelot-0.8.tar.gz
+                cd ocelot-0.8
 
 cp config.cpp.template config.cpp
 nano config.cpp
 
-Note: Edit MySQL details accordingly in config.cpp and change the port to 2710 if that is what was set in config.php (default).
+Note: Affiner votre fichier "config.cpp" avec vos Identifiants MYSQL et chnagez le port 2710 ou 34000 par celui que vous souhaitez
+Ce port doit être le même que dans config.php (!!). 
 
-Configure, Compile, Install
+ps: si vous utlisez CloudFlare, et si vous prenez par exemple chez cf le port 2052, dans votre fichier /var/classes/config.php et pour Ocelo avec le config.cpp"
+vous devrez configurer vos 2 fichiers avec le port 2052 !! Vérifiez ces toujours: config.php et config.cpp !!
 
+b) Configurer, Compiler, Installer
+(vérifier que vous êtes toujours dans le répertoire de Ocelot)
+
+Tapez les commandes suivantes:
 ./configure --with-mysql-lib=/usr/lib/x86_64-linux-gnu/ --with-ev-lib=/usr/lib/x86_64-linux-gnu/
 make
 sudo make install
 
-Create cron job for Gazelle jobs
+ETAPE 8 (Cron Job pour Gazelle)
+Tapez les commandes suivantes:
 
 mkdir ~/logs
 sudo crontab -e
 
-Copy and paste the following:
+Copier et coller ceci dans le Treminal:
 
 0,15,30,45 * * * * php /var/www/schedule.php SCHEDULE_KEY >> /home/USER/logs/schedule.log
 10,25,40,55 * * * * php /var/www/peerupdate.php SCHEDULE_KEY >> /home/USER/logs/peerupdate.log
@@ -171,15 +192,16 @@ Copy and paste the following:
 
 5 0,12 * * * indexer -c /etc/sphinxsearch/sphinx.conf --rotate --all
 
-Note: Make sure you change KEY to the schedule key you used in config.php.
-Starting Gazelle processes at startup
+IMPORTANT:: Remplacez SCHEDULE_KEY par votre MD5 ou chaine de 32 caractères dans qui se trouve dans config.php.
+Vérifiez bien vos chaines de 32 caractères, et vos fichiers de config, si "Ocelot" ne démarre pas, possible problème dans vos fihiers de config !!!
 
-Memcached
+
+c) Etape Memcached
 
 sudo mv /etc/memcached.conf /etc/memcached.conf.bak
 sudo nano /etc/memcached.conf
 
-Copy and paste the following:
+Copier et coller ceci dans le Treminal:
 
 # Run memcached as a daemon. This command is implied, and is not needed for the
 # daemon to run.
@@ -205,17 +227,19 @@ logfile /var/log/memcached.log
 # Disable the use of CAS (and reduce the per-item size by 8 bytes).
 -C
 
-Press Ctrl+X and select Yes.
+CTRL+X puis Yes pour Sauvegarder.
 
-Restart memcached:
+Relancez memcached:
 
 sudo service memcached restart
 
-Sphinx
 
+d) Etape Sphinx
+
+Editez searchd dans /etc/init.d/searchd
 sudo nano /etc/init.d/searchd
 
-Copy and paste the following:
+Copier et coller ceci:
 
 #!/bin/bash
 
@@ -235,29 +259,31 @@ case "${1:-''}" in
         ;;
 esac
 
-Press Ctrl+X and select Yes.
+Ctrl+X puis Yes pour Sauvegarder.
 
-Set correct permissions for script:
+Ajustement des permissions:
 
 sudo chmod +x /etc/init.d/searchd
 
-Set searchd service to be started on boot:
+Définir le service "searchd" au Boot:
 
 sudo update-rc.d searchd defaults
 
-Start searchd:
+Lancer searchd:
 
 sudo service searchd start
 
-Ocelot
+Démarrage de Ocelot (Ocelot sera démarré dans un fenêtre de type: screen)
 
-To start Ocelot, open a screen by typing screen, and then start Ocelot by typing LD_LIBRARY_PATH=/usr/local/lib ocelot.
+Tapez:
+- screen + Entrer
+- LD_LIBRARY_PATH=/usr/local/lib ocelot
 
-To leave the screen, press Ctrl+A+D.
+Ocelot devrait se lancer correctement ;-)
+Pour quitté screen, tapez: Ctrl+A+D
+Pour revenir dans screen, tapez: screen -r ou screen -r + PID
 
-To re-enter the screen, type screen -r.
-PHP Settings
-
+ETAPE 9 (Configuartion de PHP)
 Enable short open tags
 
 sudo nano /etc/php5/fpm/php.ini
