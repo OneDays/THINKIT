@@ -19,11 +19,14 @@ ETAPE 2 (Préparation et installation du nécessaire pour Gazelle (lib && apps))
 
 sudo apt-get install mysql-server mysql-client libmysql++-dev libmysqld-dev \
 libpng-dev libmcrypt-dev libxml2-dev memcached sphinxsearch binutils libev-dev git nginx \
-php5-fpm php-soap php-pear php5-memcache php5-curl php5-mysql php5-mcrypt php5-gd postfix
+php5-fpm php-soap php-pear php5-memcache php5-curl php5-mysql php5-mcrypt php5-gd postfix unzip
 
 *** Nous conseillons l'utilisation de PostFix au lieu de Sendmail 
 (Sendmail est relativement difficile à configurer pour, par exemple, gérer les "HEADERS" lors de l'envoi d'un mail.) 
 PostFix est quand à lui relativement simple à prendre en main.
+
+*** Une fois les paquets installés, faites un: apt-get update puis apt-get upgrade 
+On vérifie de nouveau si tout est à jour !!
 
 [NOTES]::Lors de la compilation d'Ocelot, certains d'entres vous rencontrerons probablement une ou plusieurs erreurs liées
 à certaines "Libraires Manquantes" sur votre serveur dédié, il faudra chercher cette erreur et "Coller son code" 
@@ -37,25 +40,29 @@ Cela vient probablement du fait qu'il manque la Lib: libev4 + libev-dev! Ajoutez
 apt-get install libev4 libev-dev -y
 
 
+ETAPE 3 (Ocelot préparation du terrain):
 
-Packages for Ocelot
-
-Install packages
+a) Préparation d'Ocelot (téléchargez le néessaire pour ocelot)
 
 sudo apt-get install make g++ libbz2-dev libtcmalloc-minimal4
 
-Create link for TCMalloc library file
+b) Quelques commandes sont requises
 
+- Créer un lien pour la Librarie "TCMalloc"
 sudo ln -s /usr/lib/libtcmalloc_minimal.so.4 /usr/lib/libtcmalloc.so
 
-Note: Read more about TCMalloc here: http://goog-perftools.sourceforge.net/doc/tcmalloc.html
+++ d'infos: http://goog-perftools.sourceforge.net/doc/tcmalloc.html
 
-Install Boost libraries:
 
-Note: Grab latest version from http://sourceforge.net/projects/boost/files/boost/
+Installez les librairies Boost (vous aurez besoin de télécharger le package à cette adresse Lien: http://sourceforge.net/projects/boost/files/boost/):
+[Marche à suivre]:
 
-tar -zxf boost_VERSION.tar.gz
-cd boost_VERSION
+- Placez vous dans /home/$user  --> cd /home/dossier_de_votre_user
+- wget http://sourceforge.net/projects/boost/files/boost/1.55.0/boost_1_55_0.zip
+- unzip boost_1_55_0.zip
+- cd boost_1_55_0/
+
+On passe à la complilation de boost (tapez les 3 commandes suivantes une après l'autre):
 
 ./bootstrap.sh --prefix=/usr/local
 ./b2 stage toolset=gcc cxxflags=-std=gnu++11 threading=multi link=shared
