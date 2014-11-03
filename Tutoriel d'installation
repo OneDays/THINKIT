@@ -68,16 +68,21 @@ On passe à la complilation de boost (tapez les 3 commandes suivantes une après
 ./b2 stage toolset=gcc cxxflags=-std=gnu++11 threading=multi link=shared
 sudo ./b2 install toolset=gcc cxxflags=-std=gnu++11 threading=multi link=shared
 
-Configure
-Configure Nginx
+ETAPE 4(Configuration de NGinX):
 
+a) Configurer Nginx
+Tapez les commandes suivantes:
+
+cd /
 sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
+*** (si nano n'est pas installé: apt-get install nano -y)
+
 sudo nano /etc/nginx/sites-available/default
 
-Copy and paste the following. edit HOST_NAME:
+Copiez et coller cette configuration + Editez le HOST_NAME(remplacez par votre "Nom de Domaine" ou "Votre IP, celle du serveur"):
 
 server {
-        root /var/www;
+        root /var/www;  # si vous souhaitez un autre dossier genre /var/www/thinkit, c'est pareil, il vous faut simplement créer le dossier "thinkit" (mkdir thinkit ou tracker ou cms ou autre)
         index index.php;
 
         server_name HOST_NAME;
@@ -94,12 +99,14 @@ server {
         }
 }
 
-Press Ctrl+X and select Yes.
+Pressez CTRL+X, tapez Yes pour sauvegarder votre nouvelle configuration pour NGinx
 
-Restart Nginx:
+Relancez Nginx:
 
 sudo service nginx restart
 
+
+ETAPE 5 (Récupération et Configuration de Gazelle):
 Configure Gazelle
 
 Get Gazelle:
