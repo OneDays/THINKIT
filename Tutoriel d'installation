@@ -174,6 +174,8 @@ b) Configurer, Compiler, Installer
 
 Tapez les commandes suivantes:
 ./configure --with-mysql-lib=/usr/lib/x86_64-linux-gnu/ --with-ev-lib=/usr/lib/x86_64-linux-gnu/
+ou
+./configure --with-mysql-lib=/usr/lib/i386-linux-gnu/ --with-ev-lib=/usr/lib/i386-linux-gnu/
 make
 sudo make install
 
