@@ -32,7 +32,7 @@ On vérifie de nouveau si tout est à jour !!
 à certaines "Libraires Manquantes" sur votre serveur dédié, il faudra chercher cette erreur et "Coller son code" 
 au travers de Google afin d'obtenir de l'aide !
 
-Nous allons renseigner ici quelques unes de ces "Erreur" lors de votre future "Compilation de Ocelot": 
+Nous allons renseigner ici quelques unes de ces "Erreurs" lors de votre future "Compilation de Ocelot": 
 
 ERR 1: Didn't find mysqlclient library in '/usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu//lib64 /usr/lib/x86_64-linux-gnu//lib /usr/lib/x86_64-linux-gnu//lib64/mysql /usr/lib/x86_64-linux-gnu//lib/mysql'
 
@@ -126,7 +126,7 @@ sudo cp -r Gazelle/* /var/www
 
 mysql -u root -p < /var/www/gazelle.sql
 
-[Note]:: Nous conseilleons de ne pas travailler en "ROOT" ! 
+[Note]:: Nous conseillons de ne pas travailler en "ROOT" ! 
 Il est préférable de créer un "Utilisateur" pour "Accéder aux données de vos Tables !!"
 
 b) Edition du ficher de configuration dans /var/www/classes/config.php
@@ -163,8 +163,8 @@ Alternative::   wget https://what.cd/ocelot-0.8.tar.gz --no-check-certificate
 cp config.cpp.template config.cpp
 nano config.cpp
 
-Note: Affiner votre fichier "config.cpp" avec vos Identifiants MYSQL et chnagez le port 2710 ou 34000 par celui que vous souhaitez
-Ce port doit être le même que dans config.php (!!). 
+Note: Affinez votre fichier "config.cpp" avec vos Identifiants MYSQL et chnagez le port 2710 ou 34000 par celui 
+que vous souhaitez. Ce port doit être le même que dans config.php (!!). 
 
 ps: si vous utlisez CloudFlare, et si vous prenez par exemple chez cf le port 2052, dans votre fichier /var/classes/config.php et pour Ocelo avec le config.cpp"
 vous devrez configurer vos 2 fichiers avec le port 2052 !! Vérifiez ces toujours: config.php et config.cpp !!
@@ -176,10 +176,13 @@ Tapez les commandes suivantes:
 ./configure --with-mysql-lib=/usr/lib/x86_64-linux-gnu/ --with-ev-lib=/usr/lib/x86_64-linux-gnu/
 ou
 ./configure --with-mysql-lib=/usr/lib/i386-linux-gnu/ --with-ev-lib=/usr/lib/i386-linux-gnu/
-ou bien si vous êtes sur un VPS en 32 tapez:
+
+ou bien si vous êtes sur un "VPS" ou si l'erreur revient imtempestivement tentez ceci:
 ./configure --with-mysql-lib=/usr/lib/ --with-ev-lib=/usr/lib/i386-linux-gnu/
+
 make
 sudo make install
+
 
 ETAPE 8 (Cron Job pour Gazelle)
 Tapez les commandes suivantes:
