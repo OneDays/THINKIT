@@ -172,7 +172,7 @@ vous devrez configurer vos 2 fichiers avec le port 2052 !! Vérifiez ces toujour
 b) Configurer, Compiler, Installer
 (vérifier que vous êtes toujours dans le répertoire de Ocelot)
 
-Tapez les commandes suivantes:
+Tapez les commandes suivantes (/x86_64-linux-gnu/ ou /i386-linux-gnu/ ? faites un ls /usr/lib pour le savoir !!):
 ./configure --with-mysql-lib=/usr/lib/x86_64-linux-gnu/ --with-ev-lib=/usr/lib/x86_64-linux-gnu/
 ou
 ./configure --with-mysql-lib=/usr/lib/i386-linux-gnu/ --with-ev-lib=/usr/lib/i386-linux-gnu/
