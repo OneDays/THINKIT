@@ -176,6 +176,8 @@ Tapez les commandes suivantes:
 ./configure --with-mysql-lib=/usr/lib/x86_64-linux-gnu/ --with-ev-lib=/usr/lib/x86_64-linux-gnu/
 ou
 ./configure --with-mysql-lib=/usr/lib/i386-linux-gnu/ --with-ev-lib=/usr/lib/i386-linux-gnu/
+ou bien si vous êtes sur un VPS en 32 tapez:
+./configure --with-mysql-lib=/usr/lib/ --with-ev-lib=/usr/lib/i386-linux-gnu/
 make
 sudo make install
 
