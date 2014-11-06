@@ -177,8 +177,8 @@ Tapez les commandes suivantes (/x86_64-linux-gnu/ ou /i386-linux-gnu/ ? faites u
 ou
 ./configure --with-mysql-lib=/usr/lib/i386-linux-gnu/ --with-ev-lib=/usr/lib/i386-linux-gnu/
 
-ou bien si vous êtes sur un "VPS" ou si l'erreur revient imtempestivement tentez ceci:
-./configure --with-mysql-lib=/usr/lib/ --with-ev-lib=/usr/lib/i386-linux-gnu/
+ou bien si vous êtes sur un "VPS" ou du Intel ou si l'erreur revient imtempestivement tentez ceci:
+./configure --with-mysql-lib=/usr/lib/i386-linux-gnu/ --with-ev-lib=/usr/lib/
 
 make
 sudo make install
